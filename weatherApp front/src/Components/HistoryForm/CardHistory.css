@@ -1,0 +1,487 @@
+/* Card History Styles */
+.card-history {
+  position: relative;
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.25) 0%, rgba(245, 87, 108, 0.25) 100%);
+  border: 2px solid rgba(240, 147, 251, 0.4);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(240, 147, 251, 0.3);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.card-history:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(240, 147, 251, 0.5);
+  border-color: rgba(240, 147, 251, 0.6);
+}
+
+.card-history h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* Delete X button in top right corner */
+.delete-x-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+}
+
+.delete-x-btn:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  transform: scale(1.1);
+}
+
+/* Buttons layout */
+.card-actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+}
+
+.card-actions button {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.card-actions button:nth-child(1) { 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.card-actions button:nth-child(1):hover { 
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.card-actions button:nth-child(2) { 
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.card-actions button:nth-child(2):hover { 
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+}
+
+/* Popup overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  transform: none !important;
+  will-change: auto;
+}
+
+/* Popup content box */
+.popup-card {
+  background: #1e1e2f;
+  color: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 900px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  position: relative;
+  margin: auto;
+  transform: none !important;
+  will-change: auto;
+  backface-visibility: hidden;
+}
+
+.popup-close-x {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+  z-index: 10;
+}
+
+.popup-close-x:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.popup-card h2 {
+  margin: 0 0 2rem 0;
+  padding-right: 3rem;
+  color: #4f9cf9;
+  font-size: 2rem;
+}
+
+.popup-field {
+  margin-bottom: 1.5rem;
+}
+
+.popup-field label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.87);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.popup-field input {
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.87);
+  font-size: 1rem;
+  transition: border-color 0.25s;
+}
+
+.popup-field input:focus {
+  outline: none;
+  border-color: #4f9cf9;
+}
+
+.popup-field input.disabled-input {
+  background-color: rgba(255, 255, 255, 0.05);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.popup-field .error-message {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+.popup-card p {
+  margin: 1rem 0;
+  color: rgba(255, 255, 255, 0.87);
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* Close button */
+.close-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.25s;
+  width: 100%;
+}
+
+.close-btn:hover {
+  background-color: #5a6268;
+}
+
+.save-btn {
+  background-color: #4f9cf9;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.25s;
+  flex: 1;
+}
+
+.save-btn:hover {
+  background-color: #3d8bf7;
+}
+
+/* Responsive Card History */
+@media (max-width: 1024px) {
+  .card-history {
+    padding: 1.1rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .card-history h3 {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card-history {
+    padding: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .card-history h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .delete-x-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 1.35rem;
+    top: 0.4rem;
+    right: 0.4rem;
+  }
+
+  .card-actions {
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .card-actions button {
+    padding: 0.45rem 0.875rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-history {
+    padding: 0.875rem;
+    margin-bottom: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .card-history h3 {
+    font-size: 1rem;
+    margin-bottom: 0.625rem;
+    padding-right: 2rem; /* Make room for delete button */
+  }
+
+  .delete-x-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 1.25rem;
+    top: 0.35rem;
+    right: 0.35rem;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+  }
+
+  .card-actions button {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive Popup */
+@media (max-width: 1024px) {
+  .popup-card {
+    width: 90%;
+    max-width: 800px;
+    padding: 2rem;
+  }
+
+  .popup-card h2 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .popup-overlay {
+    padding: 15px;
+  }
+
+  .popup-card {
+    width: 98%;
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .popup-card h2 {
+    font-size: 1.5rem;
+    padding-right: 2.5rem;
+  }
+
+  .popup-field label {
+    font-size: 1rem;
+  }
+
+  .popup-field input {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+  }
+
+  .popup-card p {
+    font-size: 1rem;
+  }
+
+  .popup-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-overlay {
+    padding: 10px;
+  }
+
+  .popup-card {
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: 8px;
+  }
+
+  .popup-card h2 {
+    font-size: 1.35rem;
+    margin-bottom: 1.5rem;
+    padding-right: 2rem;
+  }
+
+  .popup-field {
+    margin-bottom: 1.25rem;
+  }
+
+  .popup-field label {
+    font-size: 0.95rem;
+    gap: 0.5rem;
+  }
+
+  .popup-field input {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .popup-card p {
+    font-size: 0.95rem;
+    margin: 0.875rem 0;
+  }
+
+  .popup-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .popup-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .card-history {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+
+  .card-history h3 {
+    color: #213547;
+  }
+
+  .delete-x-btn {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .delete-x-btn:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+  }
+
+  .popup-card {
+    background: #ffffff;
+    color: #213547;
+  }
+
+  .popup-close-x {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .popup-close-x:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .popup-card h2 {
+    color: #4f9cf9;
+  }
+
+  .popup-field label {
+    color: #213547;
+  }
+
+  .popup-field input {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #213547;
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .popup-field input.disabled-input {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .popup-card p {
+    color: #213547;
+  }
+}
