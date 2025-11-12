@@ -86,3 +86,4 @@ DATABASE_URL=postgresql://neondb_owner:npg_nWS6A8HRxTmF@ep-frosty-sun-add1ndia-p
 2. Check the logs to ensure database connection is successful
 3. The `weather_history` table will be created automatically on first API call
 
+
