@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { validateLocation } from '../../utils/locationValidation';
 
+const getLocalToday = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function LocationForm({ onSubmit }) {
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -27,12 +35,7 @@ export default function LocationForm({ onSubmit }) {
     }
 
     // Validate that date is not in the past (allow today's date)
-    const today = new Date();
-    // Get local date in YYYY-MM-DD format (not UTC)
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${year}-${month}-${day}`;
+    const todayStr = getLocalToday();
     
     // Compare date strings directly to avoid timezone issues
     if (startDate < todayStr) {
@@ -93,7 +96,7 @@ export default function LocationForm({ onSubmit }) {
         <input
           type="date"
           value={startDate}
-          min={new Date().toISOString().split('T')[0]}
+          min={getLocalToday()}
           onChange={(e) => {
             const selectedDate = e.target.value;
             setStartDate(selectedDate);
@@ -101,12 +104,7 @@ export default function LocationForm({ onSubmit }) {
             
             // Validate that date is not in the past (allow today's date)
             if (selectedDate) {
-              const today = new Date();
-              // Get local date in YYYY-MM-DD format (not UTC)
-              const year = today.getFullYear();
-              const month = String(today.getMonth() + 1).padStart(2, '0');
-              const day = String(today.getDate()).padStart(2, '0');
-              const todayStr = `${year}-${month}-${day}`;
+              const todayStr = getLocalToday();
               
               // Compare date strings directly to avoid timezone issues
               if (selectedDate < todayStr) {
