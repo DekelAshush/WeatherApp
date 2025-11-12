@@ -4,6 +4,15 @@ import HistoryForm from "./Components/HistoryForm/HistoryForm.jsx";
 import WeatherCardList from "./Components/WeatherCardList/WeatherCardList.jsx";
 import "./App.css";
 
+const PM_ACCELERATOR_DESCRIPTION = `The Product Manager Accelerator Program is designed to 
+                                    support PM professionals through every stage of their careers. 
+                                    From students looking for entry-level jobs to Directors looking 
+                                    to take on a leadership role, our program has helped over hundreds 
+                                    of students fulfill their career aspirations. Our Product Manager Accelerator 
+                                    community are ambitious and committed. Through our program they have learnt, 
+                                    honed and developed new PM and leadership skills, giving them a strong foundation 
+                                    for their future endeavors.`;
+
 function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -11,6 +20,7 @@ function App() {
     const [weatherData, setWeatherData] = useState(null);
     const [temperatureUnit, setTemperatureUnit] = useState('celsius');
     const [historyRecords, setHistoryRecords] = useState([]);
+    const [isInfoOpen, setIsInfoOpen] = useState(false);
 
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -128,6 +138,20 @@ function App() {
     return (
         <div className="app-container">
             <main className="main-content">
+                <div className="app-header">
+                    <div className="app-header-text">
+                        <h1 className="app-title">Weather App</h1>
+                        <p className="app-author">by Dekel Ashush</p>
+                    </div>
+                    <button 
+                        className="info-button" 
+                        type="button"
+                        onClick={() => setIsInfoOpen(true)}
+                    >
+                        Info
+                    </button>
+                </div>
+
                 <div className="top-section">
                     
                         <HistoryForm 
@@ -182,6 +206,36 @@ function App() {
                     </div>
                 )}
             </main>
+            {isInfoOpen && (
+                <div className="info-overlay" onClick={() => setIsInfoOpen(false)}>
+                    <div 
+                        className="info-modal" 
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="info-modal-title"
+                    >
+                        <button 
+                            className="info-close-button" 
+                            type="button"
+                            onClick={() => setIsInfoOpen(false)}
+                            aria-label="Close information dialog"
+                        >
+                            ×
+                        </button>
+                        <h2 id="info-modal-title">Product Manager Accelerator</h2>
+                        <p>{PM_ACCELERATOR_DESCRIPTION}</p>
+                        <a 
+                            href="https://www.linkedin.com/school/pmaccelerator/" 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="info-link"
+                        >
+                            Visit Product Manager Accelerator on LinkedIn
+                        </a>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
