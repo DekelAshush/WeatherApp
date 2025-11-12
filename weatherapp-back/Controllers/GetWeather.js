@@ -302,7 +302,6 @@ export const getWeather = async (req, res) => {
       }
 
       // Generate Google Maps embed URL
-      const googleMapsApiKey = process.env.GOOGLE_API_KEY;
       let mapUrl = null;
       if (googleMapsApiKey && lat && lon) {
         // Google Maps Embed API URL format
