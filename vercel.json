@@ -1,7 +1,0 @@
-{
-  "buildCommand": "cd 'weatherApp front' && npm install && npm run build",
-  "outputDirectory": "weatherApp front/dist",
-  "installCommand": "cd 'weatherApp front' && npm install",
-  "framework": "vite"
-}
-
