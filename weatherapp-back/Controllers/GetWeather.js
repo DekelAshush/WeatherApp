@@ -1,5 +1,5 @@
 import { db } from '../config/database.js';
-import { parseUTCDate, filterDailyForecastsByDateRange, calculateAverageTemperature, formatDateToString } from '../utils/weatherUtils.js';
+import {parseUTCDate, filterDailyForecastsByDateRange, calculateAverageTemperature, formatDateToString, getDaysFromToday} from '../utils/weatherUtils.js';
 
 /**
  * Controller for handling weather data requests
@@ -242,16 +242,25 @@ export const getWeather = async (req, res) => {
       const onecallDates = [];
       
       allDates.forEach(date => {
-        const daysFromToday = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const daysFromToday = Math.round(getDaysFromToday(date, today));
         const dateString = formatDateToString(date);
-        if (daysFromToday < 0 || daysFromToday >= 8) {
-          daySummaryDates.push(date);
-          console.log(`    ${dateString}: ${daysFromToday} days from today → day_summary API`);
-        } else {
+      
+        // ONECALL: Dates between 0 and 7 days ahead
+        if (daysFromToday >= 0 && daysFromToday <= 7) {
           onecallDates.push(date);
-          console.log(`    ${dateString}: ${daysFromToday} days from today → onecall API`);
+          console.log(`    ${dateString}: ${daysFromToday} → onecall API`);
         }
+      
+      
+        // DAY SUMMARY: For older past dates or dates far in the future
+        else {
+          daySummaryDates.push(date);
+          console.log(`    ${dateString}: ${daysFromToday} → day_summary API`);
+        }
+      
       });
+      
+      
       
       console.log(`  Date range analysis:`);
       console.log(`    Total dates requested: ${allDates.length}`);
@@ -355,6 +364,7 @@ export const getWeather = async (req, res) => {
       // Merge results and deduplicate by date (in case same date appears in both APIs)
       const dateMap = new Map();
       
+      //************************************************************************
       // Add day_summary results first
       daySummaryResults.forEach(day => {
         const dateKey = formatDateToString(new Date(day.dt * 1000));

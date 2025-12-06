@@ -125,16 +125,17 @@ export const formatDateValue = (dateValue) => {
  * - Prevents fractional values (always integer)
  * - Ensures consistent behavior for categorizing API usage
  */
-export function getDaysFromToday(dateInput) {
+export function getDaysFromToday(dateInput, todayInput = new Date()) {
   const date = new Date(dateInput);
-  const today = new Date();
+  const today = new Date(todayInput);
 
   // Normalize both dates to local midnight
   date.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
 
-  // Difference in milliseconds → convert to days (always integer)
-  return (date - today) / 86400000; // 86400000 ms = 24h
+  // Return number of days (float)
+  return (date - today) / 86400000;
 }
+
 
 
