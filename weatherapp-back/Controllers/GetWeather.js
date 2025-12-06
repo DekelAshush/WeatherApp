@@ -73,7 +73,7 @@ export const getWeather = async (req, res) => {
     const apiKey = process.env.WEATHER_API_KEY;
     const googleMapsApiKey = process.env.GOOGLE_API_KEY;
     
-    // Log API key status (without exposing the actual keys)
+    // Log API key status 
     if (apiKey && apiKey.trim().length > 0) {
       console.log('  Weather API Key: Configured');
     } else {
@@ -223,40 +223,186 @@ export const getWeather = async (req, res) => {
         }
       }
 
-      // Now call the weather API with lat/lon 
-      console.log(`  Fetching weather data for lat=${lat}, lon=${lon}, units=${unitsParam}`);
-      const weatherUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=${unitsParam}&exclude=minutely,hourly,alerts&appid=${apiKey}`;
-      console.log(`  Weather API URL: ${weatherUrl.replace(apiKey, 'API_KEY_HIDDEN')}`);
-      const weatherResponse = await fetch(weatherUrl);
-
-      if (!weatherResponse.ok) {
-        const errorText = await weatherResponse.text();
-        throw new Error(`Weather API error: ${weatherResponse.status} - ${errorText}`);
-      }
-
-      const weatherData = await weatherResponse.json();
-      console.log('  Weather data retrieved successfully');
-
-      // Filter weather data based on date range using utility function
-      console.log(`  Filtering dates: start=${startDate} (UTC: ${startDateObj.toISOString()}), end=${endDate} (UTC: ${endDateObj.toISOString()}), daysAhead=${days}`);
-      
-      if (weatherData.daily && Array.isArray(weatherData.daily)) {
-        console.log(`  Total daily forecasts available: ${weatherData.daily.length}`);
+      // Collect all dates in the range
+      const allDates = [];
+      const currentDate = new Date(startDateObj);
+      while (currentDate <= endDateObj) {
+        allDates.push(new Date(currentDate));
+        currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
       
-      const filteredDaily = filterDailyForecastsByDateRange(
-        weatherData.daily,
-        startDateObj,
-        endDateObj,
-        true // verbose logging
-      );
+      // Determine today's date (midnight UTC)
+      const now = new Date();
+      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
       
-      console.log(`  Filtered to ${filteredDaily.length} days (expected: ${days} days)`);
+      // Split dates into two groups:
+      // 1. Past dates or dates 8+ days ahead (use day_summary API)
+      // 2. Dates within 0-7 days (use onecall API)
+      const daySummaryDates = [];
+      const onecallDates = [];
+      
+      allDates.forEach(date => {
+        const daysFromToday = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const dateString = formatDateToString(date);
+        if (daysFromToday < 0 || daysFromToday >= 8) {
+          daySummaryDates.push(date);
+          console.log(`    ${dateString}: ${daysFromToday} days from today → day_summary API`);
+        } else {
+          onecallDates.push(date);
+          console.log(`    ${dateString}: ${daysFromToday} days from today → onecall API`);
+        }
+      });
+      
+      console.log(`  Date range analysis:`);
+      console.log(`    Total dates requested: ${allDates.length}`);
+      console.log(`    Dates for day_summary API: ${daySummaryDates.length} (past or 8+ days ahead)`);
+      if (daySummaryDates.length > 0) {
+        const daySummaryDateStrings = daySummaryDates.map(d => formatDateToString(d));
+        console.log(`      Day summary dates: ${daySummaryDateStrings.join(', ')}`);
+      }
+      console.log(`    Dates for onecall API: ${onecallDates.length} (within 0-7 days)`);
+      if (onecallDates.length > 0) {
+        const onecallDateStrings = onecallDates.map(d => formatDateToString(d));
+        console.log(`      Onecall dates: ${onecallDateStrings.join(', ')}`);
+      }
+      
+      let weatherData = { current: null, daily: [], timezone: null };
+      let daySummaryResults = [];
+      let onecallResults = [];
+      
+      // Fetch from day_summary API if needed
+      if (daySummaryDates.length > 0) {
+        console.log(`  Fetching ${daySummaryDates.length} days using day_summary API`);
+        const dailyPromises = daySummaryDates.map(async (date) => {
+          // Convert date to YYYY-MM-DD format for API call
+          const dateString = formatDateToString(date);
+          // Also keep timestamp for dt field in response
+          const timestamp = Math.floor(date.getTime() / 1000);
+          const daySummaryUrl = `https://api.openweathermap.org/data/3.0/onecall/day_summary?lat=${lat}&lon=${lon}&date=${dateString}&units=${unitsParam}&appid=${apiKey}`;
+          
+          try {
+            const dayResponse = await fetch(daySummaryUrl);
+            if (!dayResponse.ok) {
+              const errorText = await dayResponse.text();
+              throw new Error(`Day summary API error for ${dateString}: ${dayResponse.status} - ${errorText}`);
+            }
+            const dayData = await dayResponse.json();
+            
+            // Transform day_summary response to match onecall daily format
+            return {
+              dt: timestamp,
+              date: dateString, // Keep date string for sorting
+              summary: dayData.summary || null,
+              temp: {
+                min: dayData.temperature?.min || null,
+                max: dayData.temperature?.max || null,
+                day: dayData.temperature?.day || dayData.temperature?.min || null,
+              },
+              weather: dayData.weather || [],
+              humidity: dayData.humidity || null,
+              wind_speed: dayData.wind?.speed || null,
+            };
+          } catch (error) {
+            console.error(`  Error fetching day summary for ${dateString}:`, error.message);
+            throw error;
+          }
+        });
+        
+        daySummaryResults = await Promise.all(dailyPromises);
+        console.log(`  Retrieved ${daySummaryResults.length} days using day_summary API`);
+        const daySummaryDatesRetrieved = daySummaryResults.map(day => formatDateToString(new Date(day.dt * 1000)));
+        console.log(`  Day summary dates retrieved: ${daySummaryDatesRetrieved.join(', ')}`);
+      }
+      
+      // Fetch from onecall API if needed
+      if (onecallDates.length > 0) {
+        console.log(`  Fetching weather data using onecall API for dates within 0-7 days`);
+        const weatherUrl = `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&units=${unitsParam}&exclude=minutely,hourly,alerts&appid=${apiKey}`;
+        console.log(`  Weather API URL: ${weatherUrl.replace(apiKey, 'API_KEY_HIDDEN')}`);
+        const weatherResponse = await fetch(weatherUrl);
+
+        if (!weatherResponse.ok) {
+          const errorText = await weatherResponse.text();
+          throw new Error(`Weather API error: ${weatherResponse.status} - ${errorText}`);
+        }
+
+        weatherData = await weatherResponse.json();
+        console.log('  Weather data retrieved successfully from onecall API');
+        
+        // Determine the date range for onecall filtering
+        const onecallStartDate = onecallDates[0];
+        const onecallEndDate = onecallDates[onecallDates.length - 1];
+        
+        // Filter weather data based on date range using utility function
+        console.log(`  Filtering onecall dates: start=${formatDateToString(onecallStartDate)}, end=${formatDateToString(onecallEndDate)}`);
+        
+        if (weatherData.daily && Array.isArray(weatherData.daily)) {
+          console.log(`  Total daily forecasts available from onecall: ${weatherData.daily.length}`);
+        }
+        
+        onecallResults = filterDailyForecastsByDateRange(
+          weatherData.daily,
+          onecallStartDate,
+          onecallEndDate,
+          true // verbose logging
+        );
+        
+        console.log(`  Filtered to ${onecallResults.length} days from onecall API (expected: ${onecallDates.length} days)`);
+        const onecallDatesRetrieved = onecallResults.map(day => formatDateToString(new Date(day.dt * 1000)));
+        console.log(`  Onecall dates retrieved: ${onecallDatesRetrieved.join(', ')}`);
+      }
+      
+      // Merge results and deduplicate by date (in case same date appears in both APIs)
+      const dateMap = new Map();
+      
+      // Add day_summary results first
+      daySummaryResults.forEach(day => {
+        const dateKey = formatDateToString(new Date(day.dt * 1000));
+        if (!dateMap.has(dateKey)) {
+          dateMap.set(dateKey, day);
+        } else {
+          console.log(`  Warning: Duplicate date ${dateKey} found in day_summary results, keeping first occurrence`);
+        }
+      });
+      
+      // Add onecall results (will overwrite if duplicate exists, preferring onecall for dates within 0-7 days)
+      onecallResults.forEach(day => {
+        const dateKey = formatDateToString(new Date(day.dt * 1000));
+        if (dateMap.has(dateKey)) {
+          console.log(`  Warning: Date ${dateKey} found in both APIs, preferring onecall result`);
+        }
+        dateMap.set(dateKey, day);
+      });
+      
+      // Convert map values to array and sort by timestamp
+      const allResults = Array.from(dateMap.values());
+      allResults.sort((a, b) => a.dt - b.dt);
+      
+      // Remove the temporary 'date' property if it exists
+      const filteredDaily = allResults.map(({ date, ...rest }) => rest);
+      
+      console.log(`  Final merged results: ${filteredDaily.length} days total`);
+      const finalDates = filteredDaily.map(day => formatDateToString(new Date(day.dt * 1000)));
+      console.log(`  Final dates: ${finalDates.join(', ')}`);
 
       // Prepare detailed weather data for response
-      const currentTemp = weatherData.current?.temp || null;
-      const currentHumidity = weatherData.current?.humidity || null;
-      const currentWindSpeed = weatherData.current?.wind_speed || null;
+      // Check if the first day is in the past - if so, don't show current weather
+      const startDateDaysFromToday = Math.floor((startDateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const isFirstDayInPast = startDateDaysFromToday < 0;
+      
+      let currentTemp = null;
+      let currentHumidity = null;
+      let currentWindSpeed = null;
+      
+      // Only show current weather if the first day is today or in the future
+      if (!isFirstDayInPast) {
+        // Use current weather from onecall if available
+        currentTemp = weatherData.current?.temp || null;
+        currentHumidity = weatherData.current?.humidity || null;
+        currentWindSpeed = weatherData.current?.wind_speed || null;
+      } else {
+        console.log(`  First day is in the past (${startDateDaysFromToday} days ago), skipping current weather`);
+      }
       
       // Format daily data with max/min temp and weather details
       const formattedDaily = filteredDaily.map(day => ({

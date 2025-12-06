@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { validateLocation } from '../../utils/locationValidation';
 
-const getLocalToday = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 export default function LocationForm({ onSubmit }) {
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -31,15 +23,6 @@ export default function LocationForm({ onSubmit }) {
 
     if (!startDate) {
       setDateError('Please select a start date');
-      return;
-    }
-
-    // Validate that date is not in the past (allow today's date)
-    const todayStr = getLocalToday();
-    
-    // Compare date strings directly to avoid timezone issues
-    if (startDate < todayStr) {
-      setDateError('Date can only be today or in the future');
       return;
     }
 
@@ -96,21 +79,10 @@ export default function LocationForm({ onSubmit }) {
         <input
           type="date"
           value={startDate}
-          min={getLocalToday()}
           onChange={(e) => {
             const selectedDate = e.target.value;
             setStartDate(selectedDate);
             setDateError(''); // Clear error when user changes date
-            
-            // Validate that date is not in the past (allow today's date)
-            if (selectedDate) {
-              const todayStr = getLocalToday();
-              
-              // Compare date strings directly to avoid timezone issues
-              if (selectedDate < todayStr) {
-                setDateError('Date can only be today or in the future');
-              }
-            }
           }}
           required
         />

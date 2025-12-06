@@ -20,51 +20,42 @@ export const parseUTCDate = (dateString) => {
  * @param {boolean} verbose - Whether to log filtering details (default: false)
  * @returns {Array} Filtered array of daily forecasts
  */
-export const filterDailyForecastsByDateRange = (dailyForecasts, startDateObj, endDateObj, verbose = false) => {
-  if (!dailyForecasts || !Array.isArray(dailyForecasts)) {
-    return [];
-  }
+export const filterDailyForecastsByDateRange = (daily, startDateObj, endDateObj, verbose = false) => {
+  const startUTC = Date.UTC(
+    startDateObj.getUTCFullYear(),
+    startDateObj.getUTCMonth(),
+    startDateObj.getUTCDate()
+  );
 
-  const filteredDaily = dailyForecasts.filter(day => {
-    // Convert UTC timestamp to UTC date
-    const dayDate = new Date(day.dt * 1000);
-    
-    // Get UTC date components for comparison
-    const dayYear = dayDate.getUTCFullYear();
-    const dayMonth = dayDate.getUTCMonth();
-    const dayDay = dayDate.getUTCDate();
-    
-    const startYear = startDateObj.getUTCFullYear();
-    const startMonth = startDateObj.getUTCMonth();
-    const startDay = startDateObj.getUTCDate();
-    
-    const endYear = endDateObj.getUTCFullYear();
-    const endMonth = endDateObj.getUTCMonth();
-    const endDay = endDateObj.getUTCDate();
-    
-    // Check if day is within range (inclusive of both start and end)
-    // Day must be >= start date AND <= end date
-    const isOnOrAfterStart = (dayYear > startYear) || 
-                            (dayYear === startYear && dayMonth > startMonth) ||
-                            (dayYear === startYear && dayMonth === startMonth && dayDay >= startDay);
-    
-    const isOnOrBeforeEnd = (dayYear < endYear) ||
-                           (dayYear === endYear && dayMonth < endMonth) ||
-                           (dayYear === endYear && dayMonth === endMonth && dayDay <= endDay);
-    
-    const included = isOnOrAfterStart && isOnOrBeforeEnd;
-    
-    if (verbose && included) {
-      console.log(`  ✓ Including: ${dayYear}-${String(dayMonth + 1).padStart(2, '0')}-${String(dayDay).padStart(2, '0')} UTC (timestamp: ${day.dt}, local: ${dayDate.toLocaleString()})`);
-    } else if (verbose) {
-      console.log(`  ✗ Excluding: ${dayYear}-${String(dayMonth + 1).padStart(2, '0')}-${String(dayDay).padStart(2, '0')} UTC (afterStart: ${isOnOrAfterStart}, beforeEnd: ${isOnOrBeforeEnd})`);
+  const endUTC = Date.UTC(
+    endDateObj.getUTCFullYear(),
+    endDateObj.getUTCMonth(),
+    endDateObj.getUTCDate()
+  );
+
+  return daily.filter(day => {
+    const dayUTC = Date.UTC(
+      new Date(day.dt * 1000).getUTCFullYear(),
+      new Date(day.dt * 1000).getUTCMonth(),
+      new Date(day.dt * 1000).getUTCDate()
+    );
+
+    const ok = dayUTC >= startUTC && dayUTC <= endUTC;
+
+    if (verbose) {
+      console.log(
+        ok
+          ? `✓ Including: ${new Date(dayUTC).toISOString().slice(0, 10)}`
+          : `✗ Excluding: ${new Date(dayUTC).toISOString().slice(0, 10)}`
+      );
     }
-    
-    return included;
-  });
 
-  return filteredDaily;
+    return ok;
+  });
 };
+
+
+
 
 /**
  * Calculate average temperature from daily forecasts
@@ -125,4 +116,25 @@ export const formatDateValue = (dateValue) => {
   
   return formatDateToString(date);
 };
+
+/**
+ * Returns the difference in full days between the given date and today.
+ * 
+ * - Normalizes both dates to local midnight
+ * - Prevents timezone issues
+ * - Prevents fractional values (always integer)
+ * - Ensures consistent behavior for categorizing API usage
+ */
+export function getDaysFromToday(dateInput) {
+  const date = new Date(dateInput);
+  const today = new Date();
+
+  // Normalize both dates to local midnight
+  date.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  // Difference in milliseconds → convert to days (always integer)
+  return (date - today) / 86400000; // 86400000 ms = 24h
+}
+
 

@@ -43,9 +43,9 @@ export default function WeatherCardList({ weatherData, temperatureUnit }) {
         </div>
       )}
       <div className="weather-cards-container">
-        {weatherData.daily.map((day, index) => (
+        {weatherData.daily.map((day) => (
           <WeatherCard 
-            key={day.dt || index} 
+            key={new Date(day.dt * 1000).toISOString().slice(0, 10)} // Use the date string as the key  
             day={day} 
             temperatureUnit={temperatureUnit}
           />

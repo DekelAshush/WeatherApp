@@ -8,7 +8,8 @@ export default function WeatherCard({ day, temperatureUnit }) {
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
-    day: 'numeric' 
+    day: 'numeric',
+    timeZone: 'UTC'
   });
 
   // Get temperature unit symbol
